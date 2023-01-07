@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  nginx:
+    build:
+      context: ./Nginx
+      dockerfile: Dockerfile
+    depends_on:
+      - php-fpm
+    ports:
+        - 19200:80
+    networks:
+      nginx_network:
+        aliases:
+          - nginx
+  php-fpm:
+    build:
+      context: ./PhpFpm
+      dockerfile: Dockerfile
+    volumes:
+      - ./PhpFpm/app:/usr/share/nginx/html
+    networks:
+      nginx_network:
+        aliases:
+          - php-fpm
+networks:
+  nginx_network:
+    driver: bridge

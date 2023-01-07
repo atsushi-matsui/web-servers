@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  apache:
+    build:
+      context: ./Apache
+      dockerfile: Dockerfile
+    ports:
+      - "19100:80"
+    depends_on:
+      - php-fpm
+    volumes:
+      - ./Apache/apache2/conf/extra/proxy-php.conf:/usr/local/apache2/conf/extra/proxy-php.conf
+      - ./Apache/apache2/conf/extra/httpd-mpm.conf :/usr/local/apache2/conf/extra/httpd-mpm.conf 
+    networks:
+      php_network:
+        aliases:
+          - apache
+    entrypoint: >-
+      sh -c "
+        grep 'Include conf/extra/proxy-php.conf' /usr/local/apache2/conf/httpd.conf || echo 'Include conf/extra/proxy-php.conf' >> /usr/local/apache2/conf/httpd.conf
+        httpd-foreground
+      "
+  php-fpm:
+    build:
+      context: ./PhpFpm
+      dockerfile: Dockerfile
+    volumes:
+      - ./PhpFpm/www-original.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./PhpFpm/app:/var/www/html
+    networks:
+      php_network:
+        aliases:
+          - php-fpm
+networks:
+  php_network:
+    driver: bridge
